@@ -35,82 +35,124 @@ router.post('/add', async (req, res) => {
   });
 
 
-    // 1.6 Write Query in POST Method for Updating a Single Record
+    // // 1.6 Write Query in POST Method for Updating a Single Record
     
+    // router.post('/update/:team', async (req, res) => {
+    //     try {
+    //       const updatedData = await Football.findOneAndUpdate(
+    //         { team: req.params.team },
+    //         req.body,
+    //         { new: true }
+    //       );
+    //       res.json(updatedData);
+    //     } catch (error) {
+    //       res.status(500).json({ error: error.message });
+    //     }
+    //   });
+   
     router.post('/update/:team', async (req, res) => {
-        try {
+      try {
+          const teamName = req.params.team;
+  
+          const existingData = await Football.findOne({ Team: { $regex: new RegExp(teamName, 'i') } });
+  
+          if (!existingData) {
+              console.log('No matching document found');
+              return res.json({ message: 'No matching document found' });
+          }
+  
+          // Update only the fields that exist in the existing document
           const updatedData = await Football.findOneAndUpdate(
-            { team: req.params.team },
-            req.body,
-            { new: true }
+              { Team: { $regex: new RegExp(teamName, 'i') } },
+              { $set: req.body },
+              { new: true, useFindAndModify: false } // Added useFindAndModify option
           );
-          res.json(updatedData);
-        } catch (error) {
+  
+          if (updatedData) {
+              console.log('Document updated successfully');
+              res.json(updatedData);
+          } else {
+              console.log('No documents were updated');
+              res.json({ message: 'No documents were updated' });
+          }
+      } catch (error) {
+          console.error('Error:', error.message);
           res.status(500).json({ error: error.message });
-        }
-      });
+      }
+  });
+  
+  
+  
+  
+
+
+
 
   // 1.8 Separate Endpoint Using POST Method for Deleting Record
   router.post('/delete/:team', async (req, res) => {
     try {
-      const deletedData = await Football.findOneAndDelete({ team: req.params.team });
-      res.json(deletedData);
+        const { team } = req.params;
+        const deletedData = await Football.findOneAndDelete({ Team: team });
+        res.json(deletedData);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+        res.status(500).json({ error: error.message });
     }
-  });
+});
+
 
   // 1.7 Separate Get Method to Show Total Games Played, Draw, and Won for the Given Year
   router.get('/stats/:year', async (req, res) => {
     try {
-      const { year } = req.params;
-      const stats = await Football.aggregate([
-        { $match: { year: parseInt(year) } },
-        {
-          $group: {
-            _id: null,
-            totalGamesPlayed: { $sum: '$gamesPlayed' },
-            totalDraw: { $sum: '$draw' },
-            totalWin: { $sum: '$win' },
-          },
-        },
-      ]);
-      res.json(stats[0]);
+        const { year } = req.params;
+        const stats = await Football.aggregate([
+            { $match: { Year: parseInt(year) } }, // Use 'Year' instead of 'year'
+            {
+                $group: {
+                    _id: null,
+                    totalGamesPlayed: { $sum: '$Games Played' }, // Use 'Games Played' instead of 'gamesPlayed'
+                    totalDraw: { $sum: '$Draw' }, // Use 'Draw' instead of 'draw'
+                    totalWin: { $sum: '$Win' }, // Use 'Win' instead of 'win'
+                },
+            },
+        ]);
+        res.json(stats[0]);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+        res.status(500).json({ error: error.message });
     }
-  });
+});
+
       
     // 1.9 Endpoint to Display First 10 Records with "Won" Greater Than a Given Value
-  router.get('/top-teams/:wonValue', async (req, res) => {
-    try {
-      const { wonValue } = req.params;
-      const topTeams = await Football.find({ win: { $gt: parseInt(wonValue) } }).limit(10);
-      res.json(topTeams);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
+    router.get('/top-teams/:wonValue', async (req, res) => {
+      try {
+          const { wonValue } = req.params;
+          const topTeams = await Football.find({ Win: { $gt: parseInt(wonValue) } }).limit(10); // Use 'Win' instead of 'win'
+          res.json(topTeams);
+      } catch (error) {
+          res.status(500).json({ error: error.message });
+      }
   });
   
+  
 
-    // 2.0 Endpoint with Query to Display All Teams Where Average "Goal For" for a Given Year
-    router.get('/average-goals/:year', async (req, res) => {
-        try {
-          const { year } = req.params;
-          const averageGoals = await Football.aggregate([
-            { $match: { year: parseInt(year) } },
-            {
+   // 2.0 Endpoint with Query to Display All Teams Where Average "Goal For" for a Given Year
+router.get('/average-goals/:year', async (req, res) => {
+  try {
+      const { year } = req.params;
+      const averageGoals = await Football.aggregate([
+          { $match: { Year: parseInt(year) } },
+          {
               $group: {
-                _id: '$team',
-                averageGoalFor: { $avg: '$goalsFor' },
+                  _id: '$Team',
+                  averageGoalFor: { $avg: '$Goals For' },
               },
-            },
-          ]);
-          res.json(averageGoals);
-        } catch (error) {
-          res.status(500).json({ error: error.message });
-        }
-      });
+          },
+      ]);
+      res.json(averageGoals);
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+});
 
 
 

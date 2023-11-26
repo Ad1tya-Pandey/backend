@@ -1,15 +1,15 @@
 const mongoose = require('mongoose');
 
 const footballSchema = new mongoose.Schema({
-  team: String,
-  gamesPlayed: Number,
-  win: Number,
-  draw: Number,
-  loss: Number,
-  goalsFor: Number,
-  goalsAgainst: Number,
-  points: Number,
-  year: Number,
+  Team: String,
+  'Games Played': Number,
+  Win: Number,
+  Draw: Number,
+  Loss: Number,
+  'Goals For': Number,
+  'Goals Against': Number,
+  Points: Number,
+  Year: Number,
 });
 
 
