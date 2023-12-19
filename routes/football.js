@@ -37,18 +37,7 @@ router.post('/add', async (req, res) => {
 
     // // 1.6 Write Query in POST Method for Updating a Single Record
     
-    // router.post('/update/:team', async (req, res) => {
-    //     try {
-    //       const updatedData = await Football.findOneAndUpdate(
-    //         { team: req.params.team },
-    //         req.body,
-    //         { new: true }
-    //       );
-    //       res.json(updatedData);
-    //     } catch (error) {
-    //       res.status(500).json({ error: error.message });
-    //     }
-    //   });
+    
    
     router.post('/update/:team', async (req, res) => {
       try {
@@ -153,6 +142,34 @@ router.get('/average-goals/:year', async (req, res) => {
       res.status(500).json({ error: error.message });
   }
 });
+
+
+// Endpoint to get total games played, draw, and won for a given team , useful for task  2.3
+router.get('/team-stats/:teamName', async (req, res) => {
+    try {
+      const { teamName } = req.params;
+  
+      const teamStats = await Football.aggregate([
+        { $match: { Team: { $regex: new RegExp(teamName, 'i') } } },
+        {
+          $group: {
+            _id: null,
+            totalGamesPlayed: { $sum: '$Games Played' },
+            totalDraw: { $sum: '$Draw' },
+            totalWin: { $sum: '$Win' },
+          },
+        },
+      ]);
+  
+      if (teamStats.length > 0) {
+        res.json(teamStats[0]);
+      } else {
+        res.json({ error: 'Team not found' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
 
 
 
